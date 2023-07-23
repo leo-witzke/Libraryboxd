@@ -1,10 +1,22 @@
 <script>
 	import Dropdown from '../components/Dropdown.svelte';
-	import { getLibraryList } from '$lib/get-and-parse.ts';
-	let librariesPromise = getLibraryList();
 
-	// import { setBranch } from '$lib/manage-cookies.ts';
-	// // setBranch("austin")
+	import { library, setLibrary, branch, setBranch } from '$lib/manage-cookies.ts';
+	import { getLibraryList } from '$lib/get-and-parse.ts';
+
+	let library_;
+	library.subscribe((value) => {
+		library_ = value;
+	});
+
+	let libraries = getLibraryList();
+
+	const a = new Map();
+	a.set("a",1);
+
+	const b = new Map();
+	b.set("b","fghjhgfghjhgfghjhgfdfghjhgfdfghjhgfdfghgfdfghgfdfghgfdfghgfdfghgfghjhgfghgf");
+
 </script>
 
 <style>
@@ -14,6 +26,7 @@
         --textNormal: #95A2B2;
         --textDropdown: #364351;
         --textHover: #FFFFFF;
+		--textSelected: #1DDF43;
 	}
 
 	p, div {
@@ -37,15 +50,16 @@
 <p class="top-bar">
 	<b>Letterboxd Library Integration</b>
 </p>
-<div style="margin: 3px;">
-	<Dropdown/>
-	{#await librariesPromise}
+<div style="margin: 3px">
+	<Dropdown entries={a} title="LIBRARY"/>
+	<Dropdown entries={b} title="LIBRARY"/>
+	{#await libraries}
 		Loading Libraries List
-	{:then libraries}
-		<Dropdown entries={libraries}/>
+	{:then librariesMap}
+		<Dropdown entries={librariesMap} title="LIBRARY" callback={setLibrary}/>
 	{/await}
 </div>
 <hr style="width: 100%; border: 1px solid var(--spacer);"/>
 <p class="description">
-	Searching the ___(library)
+	Searching the {library_}
 </p>

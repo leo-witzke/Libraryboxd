@@ -3,7 +3,7 @@ export async function getLibraryList(): Promise<Map<string, string>> {
         const libraries = new Map();
         const libraryList = dom.getElementById("library_select");
         for (const library of libraryList.children) {
-            libraries.set(library.textContent, library.getAttribute("value"));
+            libraries.set(library.getAttribute("value"), library.textContent);
         }
         return libraries;
     }

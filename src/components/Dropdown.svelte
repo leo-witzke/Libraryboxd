@@ -1,8 +1,9 @@
-<script>
-	export let entries = new Map();
-    // entries.set('a', 1);
+<script lang="ts">
+	export let entries: Map<string, string>;
 
-    export const title = "BRANCH";
+    export let callback = (entry: string) => {console.log(entry)};
+
+    export let title: string;
 
 </script>
 
@@ -34,13 +35,13 @@
         background-color: var(--hoverColorLight);
     }
 
-    .dropdown-content div {
+    .dropdown-content button {
         color: var(--textDropdown);
         padding: var(--entry-padding);
         font-family: Graphik-Regular-Web,sans-serif;
     }
 
-    .dropdown-content div:hover {
+    .dropdown-content button:hover {
         color: var(--textHover);
         background-color: var(--hoverColorDark);
     }
@@ -51,6 +52,12 @@
         border: 1px solid var(--spacer);
     }
 
+    button {
+        text-align: left;
+        background-color: transparent;
+        border: none;
+    }
+
 </style>
 
 <div class="dropdown">
@@ -58,7 +65,7 @@
     <div class="dropdown-content">
         <hr class="spacer">
         {#each [...entries] as [key, entry]}
-            <div>{key}</div>
+            <button id={key} on:click={() => {callback(key)}}>{entry+" ("+key+")"}</button>
         {/each}
     </div>
 </div>
