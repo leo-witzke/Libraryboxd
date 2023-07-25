@@ -1,18 +1,21 @@
 {
-    "manifest_version": 3,
-    "name": "Libraryboxd",
-    "version": "1.0",
-    "action": {
-      "default_popup": "index.html"
-    },
-    "permissions": [
-      "scripting",
-      "cookies"
-    ],
-    "host_permissions": [
-      "https://letterboxd.com/",
-      "https://bibliocommons.com/",
-      "https://developer.bibliocommons.com/",
-      "https://gateway.bibliocommons.com/"
-    ]
+  "manifest_version": 3,
+  "name": "Libraryboxd",
+  "version": "1.0",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "scripting",
+    "cookies"
+  ],
+  "host_permissions": [
+    "https://letterboxd.com/",
+    "https://bibliocommons.com/",
+    "https://developer.bibliocommons.com/",
+    "https://gateway.bibliocommons.com/"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
   }
+}

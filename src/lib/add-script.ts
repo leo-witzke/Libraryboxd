@@ -1,39 +1,34 @@
+import { getMovieAvailability } from '$lib/get-and-parse.ts';
+import type { MovieAvailability, Availability } from '$lib/get-and-parse.ts';
+
 const cachedFilms = new Set();
 var dvdSVG = null;
 var bluraySVG = null;
 
-async function getTabId(): Promise<number> {
-  const tab = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  return tab[0].id;
-}
-
-async function executeScript() {
-  const tabID = await getTabId()
+export async function executeScript(tabId: number) {
   chrome.scripting.executeScript({
-    target : {tabId : tabID},
+    target : {tabId : tabId},
     func : gatherPosters,
   }).then(injectionResults => {
-    addAvailability(injectionResults[0].result)
+    addAvailability(tabId, injectionResults[0].result)
   });
 }
 
-async function addAvailability(filmsOnPage: Array<Film>) {
+async function addAvailability(tabId: number, filmsOnPage: Array<Film>) {
   if (dvdSVG == null) {
-    dvdSVG = await (await fetch('static/dvd.svg')).text();
+    dvdSVG = await (await fetch('dvd.svg')).text();
   }
   if (bluraySVG == null) {
-    bluraySVG = await (await fetch('static/blu-ray.svg')).text();
+    bluraySVG = await (await fetch('blu-ray.svg')).text();
   }
   console.log(filmsOnPage);
   for (const film of filmsOnPage) {
     getMovieAvailability(film["title"],film["year"]).then(movieAvailability => {
-      getTabId().then(tabID =>
-        chrome.scripting.executeScript({
-          target : {tabId : tabID},
-          func : addAvailabilityIcons,
-          args : [movieAvailability, dvdSVG, bluraySVG],
-        })
-      )
+      chrome.scripting.executeScript({
+        target : {tabId : tabId},
+        func : addAvailabilityIcons,
+        args : [movieAvailability, dvdSVG, bluraySVG],
+      })
     })
   }
 }
@@ -109,5 +104,3 @@ function gatherPosters(): Array<Film> {
 
   return filmsOnPage;
 }
-
-executeScript()

@@ -8,7 +8,7 @@ function countOnes(binaryNumber: number): number {
     return count;
 }
 
-function similarity(word_one: string, word_two: string): number {
+export function similarity(word_one: string, word_two: string): number {
     word_one = word_one.toLowerCase();
     word_two = word_two.toLowerCase();
     let smaller_word = word_one;

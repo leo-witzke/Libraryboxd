@@ -1,4 +1,5 @@
 import { library, branch } from '$lib/manage-cookies.ts';
+import { similarity } from '$lib/similarity.ts';
 
 let library_;
 library.subscribe((value) => {
@@ -31,7 +32,10 @@ export async function getBranches(): Promise<Map<string, string>> {
         for (const branch of branchesList) {
             branches.set(branch["code"], branch["name"]);
         }
-        return branches
+        return branches;
+    }
+    if (library_ == undefined || library_ == "") {
+        return new Map();
     }
     return parseBranches(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/"+library_)).json());
 }
@@ -100,7 +104,7 @@ async function getMovie(title: string, year: string): Promise<Array<Movie>> {
         })})).json());
 }
 
-interface Availability {
+export interface Availability {
     atBranch: boolean;
     branchLink: string;
     inLibrary: boolean;
@@ -114,14 +118,14 @@ const defaultAvailability: Availability = {
     libraryLink: ""
 }
 
-interface MovieAvailability {
+export interface MovieAvailability {
     title: string;
     year: string;
     BLURAY: Availability;
     DVD: Availability;
 }
 
-async function getMovieAvailability(title: string, year: string): Promise<MovieAvailability> {
+export async function getMovieAvailability(title: string, year: string): Promise<MovieAvailability> {
     function updateAvailability(id: string, availability: Availability, branchToAvailable: Map<string, string>) {
         for (const [branchCode, status] of branchToAvailable.entries()) {
             if (branchCode == branch_) {
