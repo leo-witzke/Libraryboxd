@@ -34,6 +34,7 @@ export async function getBranch() {
 export function setLibrary(library_: string) {
     setCookie("library", library_);
     library.set(library_);
+    setBranch("");
 }
 
 export async function getLibrary() {

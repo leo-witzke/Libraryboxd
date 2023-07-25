@@ -1,10 +1,24 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+
 	export let entries: Map<string, string>;
 
     export let callback = (entry: string) => {console.log(entry)};
 
     export let title: string;
 
+    let previouslySelected;
+    export let store = null;
+    onMount(() => {
+        store?.subscribe((value) => {
+            const clickedButton = document.getElementById(value);
+            if (clickedButton != undefined) {
+                previouslySelected?.style.removeProperty("color");
+                clickedButton.style.color = "var(--textSelected)";
+                previouslySelected = clickedButton;
+            }
+        });
+    });
 </script>
 
 <style>

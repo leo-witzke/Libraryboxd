@@ -1,3 +1,15 @@
+import { library, branch } from '$lib/manage-cookies.ts';
+
+let library_;
+library.subscribe((value) => {
+    library_ = value;
+});
+
+let branch_;
+branch.subscribe((value) => {
+    branch_ = value;
+});
+
 export async function getLibraryList(): Promise<Map<string, string>> {
     function parseLibraryList(dom: Document): Map<string, string> {
         const libraries = new Map();
@@ -11,17 +23,17 @@ export async function getLibraryList(): Promise<Map<string, string>> {
     return parseLibraryList(domParser.parseFromString(await (await fetch("https://developer.bibliocommons.com/info/select_library")).text(), "text/html"));
 }
 
-async function getBranches(libraryCode: string): Promise<Map<string, string>> {
+export async function getBranches(): Promise<Map<string, string>> {
     function parseBranches(json: JSON): Map<string, string> {
         const branches = new Map();
         const id = json["library"]["id"];
         const branchesList = json["entities"]["libraries"][String(id)]["branches"];
         for (const branch of branchesList) {
-            branches.set(branch["name"], branch["code"]);
+            branches.set(branch["code"], branch["name"]);
         }
         return branches
     }
-    return parseBranches(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/austin")).json());
+    return parseBranches(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/"+library_)).json());
 }
 
 async function getAvailability(id: string): Promise<Map<string, string>> {
@@ -41,7 +53,7 @@ async function getAvailability(id: string): Promise<Map<string, string>> {
         }
         return availability
     }
-    return parseAvailability(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/austin/bibs/" + id + "/availability")).json());
+    return parseAvailability(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/"+library_+"/bibs/" + id + "/availability")).json());
 }
 
 interface Movie {
@@ -76,7 +88,7 @@ async function getMovie(title: string, year: string): Promise<Array<Movie>> {
     }
 
     const query = "(title:("+title+") AND pubyear:["+year+" TO *] AND formatcode:(BLURAY OR DVD))"
-    return parseMovies(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/austin/bibs/search", {
+    return parseMovies(await (await fetch("https://gateway.bibliocommons.com/v2/libraries/"+library_+"/bibs/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -109,27 +121,24 @@ interface MovieAvailability {
     DVD: Availability;
 }
 
-const selectedBranchCode = "ACE"
-const selectedBranch = "Central Library"
-
 async function getMovieAvailability(title: string, year: string): Promise<MovieAvailability> {
     function updateAvailability(id: string, availability: Availability, branchToAvailable: Map<string, string>) {
         for (const [branchCode, status] of branchToAvailable.entries()) {
-            if (branchCode == selectedBranchCode) {
+            if (branchCode == branch_) {
                 if (availability["atBranch"] != true) {
                     if (status == "AVAILABLE") {
                         availability["atBranch"] = true;
-                        availability["branchLink"] = "https://austin.bibliocommons.com/v2/record/"+id;
+                        availability["branchLink"] = "https://"+library_+".bibliocommons.com/v2/record/"+id;
                     } else if (availability["branchLink"] == "") {
-                        availability["branchLink"] = "https://austin.bibliocommons.com/v2/record/"+id;
+                        availability["branchLink"] = "https://"+library_+".bibliocommons.com/v2/record/"+id;
                     }
                 }
             } else if (availability["inLibrary"] != true) {
                 if (status == "AVAILABLE") {
                     availability["inLibrary"] = true;
-                    availability["libraryLink"] = "https://austin.bibliocommons.com/v2/record/"+id;
+                    availability["libraryLink"] = "https://"+library_+".bibliocommons.com/v2/record/"+id;
                 } else if (availability["libraryLink"] == "") {
-                    availability["libraryLink"] = "https://austin.bibliocommons.com/v2/record/"+id;
+                    availability["libraryLink"] = "https://"+library_+".bibliocommons.com/v2/record/"+id;
                 }
             }
         }
