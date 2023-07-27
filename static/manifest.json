@@ -3,7 +3,7 @@
   "name": "Libraryboxd",
   "homepage_url": "https://github.com/leo-witzke/Libraryboxd",
   "version": "0.1",
-  "description": "Library/BiblioCommons integration for Letterboxd\nSelect your library system and branch then let the extension go to work. If your library has the movie in its system, there will be a clickable icon in the upper right hand corner of the poster. The icon is faded out if your library has it, but its not currently avaliable at your branch.",
+  "description": "Library/BiblioCommons integration for Letterboxd",
   "icons": {
     "16": "icon16.png",
     "32": "icon32.png",
