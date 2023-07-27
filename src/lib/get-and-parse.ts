@@ -1,5 +1,5 @@
 import { library, branch } from '$lib/manage-cookies.ts';
-import { similarity } from '$lib/similarity.ts';
+import { editSimilarity } from '$lib/similarity.ts';
 
 let library_;
 library.subscribe((value) => {
@@ -71,21 +71,33 @@ interface Movie {
 async function getMovie(title: string, year: string): Promise<Array<Movie>> {
     function parseMovies(json: JSON): Array<Movie> {
         const movies = new Array();
+
         if (json["entities"] == null || json["entities"]["bibs"] == null) {
             return null
         }
+
+        function addMovie(itemID, item) {
+            movies.push({
+                title: item["briefInfo"]["title"],
+                subtitle: item["briefInfo"]["subtitle"],
+                id: itemID,
+                groupId: item["briefInfo"]["groupKey"],
+                format: item["briefInfo"]["format"],
+            });
+        }
+
         const items = json["entities"]["bibs"];
+        let groupId = undefined;
         for (const [itemID, item] of Object.entries(items)) {
             const itemTitle = item["briefInfo"]["title"];
             const itemSubtitle = item["briefInfo"]["subtitle"];
-            if (Math.max(similarity(title, itemTitle), similarity(title, itemTitle+": "+itemSubtitle)) >= 0.7) {
-                movies.push({
-                    title: item["briefInfo"]["title"],
-                    subtitle: item["briefInfo"]["subtitle"],
-                    id: itemID,
-                    groupId: item["briefInfo"]["groupKey"],
-                    format: item["briefInfo"]["format"],
-                });
+            if (groupId != undefined) {
+                if (groupId == item["briefInfo"]["groupKey"]) {
+                    addMovie(itemID, item);
+                }
+            } else if (Math.max(editSimilarity(title, itemTitle), editSimilarity(title, itemTitle+" "+itemSubtitle)) >= 0.7) {
+                groupId = item["briefInfo"]["groupKey"];
+                addMovie(itemID, item);
             }
         }
         return movies
@@ -121,11 +133,12 @@ const defaultAvailability: Availability = {
 export interface MovieAvailability {
     title: string;
     year: string;
+    boxdId: string;
     BLURAY: Availability;
     DVD: Availability;
 }
 
-export async function getMovieAvailability(title: string, year: string): Promise<MovieAvailability> {
+export async function getMovieAvailability(title: string, year: string, boxdId: string): Promise<MovieAvailability> {
     function updateAvailability(id: string, availability: Availability, branchToAvailable: Map<string, string>) {
         for (const [branchCode, status] of branchToAvailable.entries()) {
             if (branchCode == branch_) {
@@ -154,18 +167,12 @@ export async function getMovieAvailability(title: string, year: string): Promise
         const movieAvailability: MovieAvailability = {
             title: title,
             year: year,
+            boxdId: boxdId,
             BLURAY: Object.assign({},defaultAvailability),
             DVD: Object.assign({},defaultAvailability),      
         };
 
-        const movieGroupID = movies[0].groupId;
-        const movieGroup = new Array();
         for (const movie of movies) {
-            if (movie.groupId == movieGroupID) {
-                movieGroup.push(movie)
-            }
-        }
-        for (const movie of movieGroup) {
             updateAvailability(movie.id, movieAvailability[movie.format], await getAvailability(movie.id))
         }
 
@@ -174,10 +181,3 @@ export async function getMovieAvailability(title: string, year: string): Promise
 
     return null;
 }
-
-// getMovieAvailability("Shrek").then(
-//     x => console.log(x)
-// )
-// getMovieAvailability("Mission Impossible").then(
-//     x => console.log(x)
-// )
