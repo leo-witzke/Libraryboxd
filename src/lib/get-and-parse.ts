@@ -89,15 +89,17 @@ async function getMovie(title: string, year: string): Promise<Array<Movie>> {
         const items = json["entities"]["bibs"];
         let groupId = undefined;
         for (const [itemID, item] of Object.entries(items)) {
-            const itemTitle = item["briefInfo"]["title"];
-            const itemSubtitle = item["briefInfo"]["subtitle"];
-            if (groupId != undefined) {
-                if (groupId == item["briefInfo"]["groupKey"]) {
+            if (!item["briefInfo"]["callNumber"].includes("TV")) {
+                const itemTitle = item["briefInfo"]["title"];
+                const itemSubtitle = item["briefInfo"]["subtitle"];
+                if (groupId != undefined) {
+                    if (groupId == item["briefInfo"]["groupKey"]) {
+                        addMovie(itemID, item);
+                    }
+                } else if (Math.max(editSimilarity(title, itemTitle), editSimilarity(title, itemTitle+" "+itemSubtitle)) >= 0.7) {
+                    groupId = item["briefInfo"]["groupKey"];
                     addMovie(itemID, item);
                 }
-            } else if (Math.max(editSimilarity(title, itemTitle), editSimilarity(title, itemTitle+" "+itemSubtitle)) >= 0.7) {
-                groupId = item["briefInfo"]["groupKey"];
-                addMovie(itemID, item);
             }
         }
         return movies
